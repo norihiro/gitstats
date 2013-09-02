@@ -718,6 +718,17 @@ class ReportCreator:
 def html_linkify(text):
 	return text.lower().replace(' ', '_')
 
+def background_color(f, r):
+	import math
+	t = float(f-1) / (r-1)
+	if t<0.5:
+		g = 255
+		r = int(127.5 - math.cos(t*math.pi*2) * 127.5)
+	else:
+		r = 255
+		g = int(127.5 - math.cos(t*math.pi*2) * 127.5)
+	return 'rgb(%d, %d, 0)'%(r, g)
+
 def html_header(level, text):
 	name = html_linkify(text)
 	return '\n<h%d><a href="#%s" name="%s">%s</a></h%d>\n\n' % (level, name, name, text, level)
@@ -817,8 +828,8 @@ class HTMLReportCreator(ReportCreator):
 		fp = open(path + '/hour_of_day.dat', 'w')
 		for i in range(0, 24):
 			if i in hour_of_day:
-				r = 127 + int((float(hour_of_day[i]) / data.activity_by_hour_of_day_busiest) * 128)
-				f.write('<td style="background-color: rgb(%d, 0, 0)">%d</td>' % (r, hour_of_day[i]))
+				rgb = background_color(hour_of_day[i], data.activity_by_hour_of_day_busiest)
+				f.write('<td style="background-color: %s">%d</td>' % (rgb, hour_of_day[i]))
 				fp.write('%d %d\n' % (i, hour_of_day[i]))
 			else:
 				f.write('<td>0</td>')
@@ -828,8 +839,8 @@ class HTMLReportCreator(ReportCreator):
 		totalcommits = data.getTotalCommits()
 		for i in range(0, 24):
 			if i in hour_of_day:
-				r = 127 + int((float(hour_of_day[i]) / data.activity_by_hour_of_day_busiest) * 128)
-				f.write('<td style="background-color: rgb(%d, 0, 0)">%.2f</td>' % (r, (100.0 * hour_of_day[i]) / totalcommits))
+				rgb = background_color(hour_of_day[i], data.activity_by_hour_of_day_busiest)
+				f.write('<td style="background-color: %s">%.2f</td>' % (rgb, (100.0 * hour_of_day[i]) / totalcommits))
 			else:
 				f.write('<td>0.00</td>')
 		f.write('</tr></table>')
@@ -882,8 +893,8 @@ class HTMLReportCreator(ReportCreator):
 					commits = 0
 				if commits != 0:
 					f.write('<td')
-					r = 127 + int((float(commits) / data.activity_by_hour_of_week_busiest) * 128)
-					f.write(' style="background-color: rgb(%d, 0, 0)"' % r)
+					rgb = background_color(commits, data.activity_by_hour_of_week_busiest)
+					f.write(' style="background-color: %s"' % rgb)
 					f.write('>%d</td>' % commits)
 				else:
 					f.write('<td></td>')
@@ -937,8 +948,7 @@ class HTMLReportCreator(ReportCreator):
 		max_commits_on_tz = max(data.commits_by_timezone.values())
 		for i in sorted(data.commits_by_timezone.keys(), key = lambda n : int(n)):
 			commits = data.commits_by_timezone[i]
-			r = 127 + int((float(commits) / max_commits_on_tz) * 128)
-			f.write('<tr><th>%s</th><td style="background-color: rgb(%d, 0, 0)">%d</td></tr>' % (i, r, commits))
+			f.write('<tr><th>%s</th><td style="background-color: %s">%d</td></tr>' % (i, background_color(commits, max_commits_on_tz), commits))
 		f.write('</tr></table>')
 
 		f.write('</body></html>')
